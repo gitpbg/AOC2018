@@ -1,3 +1,7 @@
+extern crate regex;
+use regex::Regex;
+
+#[derive(Debug)]
 struct Rectangle {
     id:String,
     x:i32,
@@ -7,7 +11,7 @@ struct Rectangle {
 }
 
 impl Rectangle {
-    fn from_string(s:&str) -> Rectangle {
+    fn new() -> Rectangle {
         Rectangle {
             id: String::from("foo"),
             x:0,
@@ -18,11 +22,22 @@ impl Rectangle {
     }
 }
 
+fn parse_string(re:&Regex, data:&str) -> Option<Rectangle>
+{
+    let mut rv = Rectangle::new();
+    let caps = re.captures(&data).unwrap();
+    rv.id = String::from(caps.name(&"id").unwrap().as_str());
+    rv.x = caps.name(&"xpos").unwrap().as_str().parse::<i32>().unwrap();
+    rv.y = caps.name(&"ypos").unwrap().as_str().parse::<i32>().unwrap();
+    rv.w = caps.name(&"width").unwrap().as_str().parse::<i32>().unwrap();
+    rv.h = caps.name(&"height").unwrap().as_str().parse::<i32>().unwrap();
+    Some(rv)
+}
+
 fn main() {
     //read_data()
+    let re = Regex::new(r"(?P<id>#\d+) @ (?P<xpos>\d+),(?P<ypos>\d+): (?P<width>\d+)x(?P<height>\d+)").unwrap();
     let s = String::from("#1 @ 509,796: 18x15");
-    let m = s.matches("[0-9]+");
-    for a in m {
-        println!("{:?}", a);
-    }
+    let rv = parse_string(&re, &s);
+    println!("{}=>{:?}", s, rv);
 }

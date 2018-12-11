@@ -1,6 +1,6 @@
 extern crate regex;
 use regex::Regex;
-
+use std::fs;
 #[derive(Debug)]
 struct Rectangle {
     id:String,
@@ -25,19 +25,36 @@ impl Rectangle {
 fn parse_string(re:&Regex, data:&str) -> Option<Rectangle>
 {
     let mut rv = Rectangle::new();
-    let caps = re.captures(&data).unwrap();
-    rv.id = String::from(caps.name(&"id").unwrap().as_str());
-    rv.x = caps.name(&"xpos").unwrap().as_str().parse::<i32>().unwrap();
-    rv.y = caps.name(&"ypos").unwrap().as_str().parse::<i32>().unwrap();
-    rv.w = caps.name(&"width").unwrap().as_str().parse::<i32>().unwrap();
-    rv.h = caps.name(&"height").unwrap().as_str().parse::<i32>().unwrap();
-    Some(rv)
+    let tmp = re.captures(&data);
+    if tmp.is_some() {
+        let caps = re.captures(&data).unwrap();
+        rv.id = String::from(caps.name(&"id").unwrap().as_str());
+        rv.x = caps.name(&"xpos").unwrap().as_str().parse::<i32>().unwrap();
+        rv.y = caps.name(&"ypos").unwrap().as_str().parse::<i32>().unwrap();
+        rv.w = caps.name(&"width").unwrap().as_str().parse::<i32>().unwrap();
+        rv.h = caps.name(&"height").unwrap().as_str().parse::<i32>().unwrap();
+        Some(rv)
+    } else {
+        None
+    }
 }
 
 fn main() {
     //read_data()
+    let data = fs::read_to_string("input.txt").unwrap();
+    println!("{} bytes read", data.len());
+    let v = data.split("\n");
     let re = Regex::new(r"(?P<id>#\d+) @ (?P<xpos>\d+),(?P<ypos>\d+): (?P<width>\d+)x(?P<height>\d+)").unwrap();
-    let s = String::from("#1 @ 509,796: 18x15");
-    let rv = parse_string(&re, &s);
-    println!("{}=>{:?}", s, rv);
+    let mut rects : Vec<Rectangle> = Vec::new();
+    for val in v {
+        println!("{}", val);
+        let s = String::from(val);
+        let rv = parse_string(&re, &s);
+//        println!("{}=>{:?}", s, rv);
+        match rv {
+            Some(r) => rects.push(r),
+            None=>{},
+        }
+    }
+    println!("{} rectangles", rects.len());
 }
